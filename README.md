@@ -20,6 +20,8 @@ For a detailed explanation of how the components work together, please see the [
 
 ## Step-by-Step Deployment Guide
 
+> **Note:** The following commands should be executed on your **DigitalOcean Droplet (your server)** via an SSH connection.
+
 ### Phase 1: Install and Configure Tailscale
 
 1.  **Install Tailscale on your Server (Droplet):**
