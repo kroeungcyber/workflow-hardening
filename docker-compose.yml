@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  n8n:
+    image: n8nio/n8n
+    container_name: n8n_secure
+    restart: unless-stopped
+    environment:
+      # Replace with your actual Tailscale IP address for the Droplet.
+      # You can find this by running 'tailscale ip -4' on the server.
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PROTOCOL=http # TLS is handled by Tailscale, so http is fine here.
+      - TZ=America/Los_Angeles # Set your timezone
+      # Rate limiting for brute-force protection
+      - N8N_RATE_LIMIT_AUTH_ENABLED=true
+      - N8N_RATE_LIMIT_AUTH_MAX=10
+      - N8N_RATE_LIMIT_AUTH_WINDOW=60
+    ports:
+      # Binds n8n to the host's Tailscale IP only.
+      # Replace ${N8N_HOST} with your Tailscale IP.
+      - "${N8N_HOST}:5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - secure_internal_network
+
+volumes:
+  n8n_data:
+    name: n8n_data
+
+networks:
+  secure_internal_network:
+    driver: bridge
+    internal: true # This prevents containers from accessing the public internet.
