@@ -2,6 +2,8 @@
 
 This project provides a secure, self-hosted n8n setup using Docker, Tailscale, and UFW on a DigitalOcean Droplet. It follows a Zero Trust security model, ensuring that your n8n instance is not exposed to the public internet.
 
+For a detailed explanation of how the components work together, please see the [System Architecture Overview](ARCHITECTURE.md).
+
 ## Features
 
 - **Zero Trust Access**: Utilizes Tailscale for secure, IP-independent access.
