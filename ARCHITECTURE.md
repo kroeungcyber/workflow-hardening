@@ -39,9 +39,25 @@ Here is a simplified diagram of the data flow:
 3.  **The DigitalOcean Droplet (The Server):**
     -   **Layer 1: The Firewall (`ufw`)**: The very first thing any traffic hits is the server's firewall. We have configured it to `DENY` all incoming connections from the public internet. The *only* exception is for traffic coming from the secure Tailscale network (`tailscale0` interface). This is the most critical step; it makes your n8n instance invisible to the public.
     -   **Layer 2: Docker and n8n**:
-        -   Inside the server, Docker runs your n8n container.
+        -   Inside the server, Docker runs your n8n container and a PostgreSQL database container.
+        -   The n8n container is configured to use the PostgreSQL database for storing all workflows, credentials, and settings. This central database ensures that all users see the same data regardless of which computer they use.
+        -   The database container uses a Docker volume (`postgres_data`) to persist data, ensuring it survives container restarts and updates.
         -   In the `docker-compose.yml` file, we configured the n8n service to bind *only* to the server's Tailscale IP address (`${N8N_HOST}:5678:5678`).
         -   This means that even if the firewall were to fail, the n8n application itself would not accept connections from the server's public IP address. It's a second layer of defense.
+
+## Data Synchronization Solution
+
+The PostgreSQL database resolves the data synchronization issue between computers by:
+
+1. Storing all workflow data centrally on the server
+2. Ensuring all users access the same database instance
+3. Providing a single source of truth for workflows and credentials
+4. Eliminating local storage differences between devices
+
+When users access n8n from different computers, they're connecting to the same n8n instance with the same underlying database. This means:
+- Workflow changes are immediately visible to all users
+- User preferences and credentials are consistent across devices
+- Collaboration is seamless since everyone sees the same data
 
 ## Summary of Security Benefits
 
@@ -49,3 +65,4 @@ Here is a simplified diagram of the data flow:
 -   **Encrypted Traffic**: All communication between your device and the server is end-to-end encrypted by Tailscale.
 -   **Strong Authentication**: Access is controlled by your Tailscale account's identity provider (like Google, Microsoft, or GitHub), which supports Multi-Factor Authentication (MFA).
 -   **DDoS and Brute-Force Mitigation**: Since attackers can't see or connect to your n8n login page from the public internet, they cannot launch DDoS or brute-force attacks against it. The rate-limiting configured in n8n is an extra precaution for authorized users.
+-   **Centralized Data Security**: The PostgreSQL database is only accessible within the Docker internal network, providing an additional layer of protection for workflow data.

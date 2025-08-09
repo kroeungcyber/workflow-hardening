@@ -52,14 +52,23 @@ For a detailed explanation of how the components work together, please see the [
     cd workflow-hardening
     ```
 
-2.  **Set the N8N_HOST Environment Variable:**
-    Create a `.env` file in the project directory with your server's Tailscale IP address.
+2.  **Set Environment Variables:**
+    Create a `.env` file in the project directory with your server's Tailscale IP address and PostgreSQL credentials.
     ```bash
-    echo "N8N_HOST=$(tailscale ip -4)" > .env
+    cat > .env <<EOL
+    # Tailscale IP for n8n
+    N8N_HOST=$(tailscale ip -4)
+    
+    # PostgreSQL credentials
+    POSTGRES_DB=n8n_db
+    POSTGRES_USER=n8n_user
+    POSTGRES_PASSWORD=$(openssl rand -base64 24)
+    EOL
     ```
+    This generates a strong random password for the database.
 
 3.  **Run Docker Compose:**
-    This will start the n8n container, which will only be accessible via the Tailscale network.
+    This will start the n8n container with PostgreSQL database, which will only be accessible via the Tailscale network.
     ```bash
     docker-compose up -d
     ```
@@ -92,6 +101,15 @@ For a detailed explanation of how the components work together, please see the [
     Confirm that the default policy is `deny (incoming)` and that you see `ALLOW IN` rules for SSH and your Tailscale interface.
 
 3.  **Test Public Access (Optional):** From a device *not* on your Tailscale network, try to access `http://<Your_Droplet_Public_IP>:5678`. The connection should time out. This confirms the firewall is blocking public access.
+
+## Data Synchronization Solution
+
+The PostgreSQL database ensures that all workflow data is stored centrally on the server. This resolves the synchronization issue between different computers because:
+
+1. All users access the same centralized database
+2. Workflow changes are immediately visible to all connected devices
+3. User-specific settings are stored in the database rather than locally
+4. Collaboration features work seamlessly across devices
 
 ## Accessing Your n8n Instance
 

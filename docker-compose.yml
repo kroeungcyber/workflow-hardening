@@ -5,30 +5,46 @@ services:
     image: n8nio/n8n
     container_name: n8n_secure
     restart: unless-stopped
+    depends_on:
+      - postgres
     environment:
-      # Replace with your actual Tailscale IP address for the Droplet.
-      # You can find this by running 'tailscale ip -4' on the server.
       - N8N_HOST=${N8N_HOST}
-      - N8N_PROTOCOL=http # TLS is handled by Tailscale, so http is fine here.
-      - TZ=America/Los_Angeles # Set your timezone
-      # Rate limiting for brute-force protection
+      - N8N_PROTOCOL=http
+      - TZ=America/Los_Angeles
+      # Database configuration
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_DATABASE=${POSTGRES_DB}
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      # Rate limiting
       - N8N_RATE_LIMIT_AUTH_ENABLED=true
       - N8N_RATE_LIMIT_AUTH_MAX=10
       - N8N_RATE_LIMIT_AUTH_WINDOW=60
     ports:
-      # Binds n8n to the host's Tailscale IP only.
-      # Replace ${N8N_HOST} with your Tailscale IP.
       - "${N8N_HOST}:5678:5678"
+    networks:
+      - secure_internal_network
+
+  postgres:
+    image: postgres:15
+    container_name: n8n_postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
-      - n8n_data:/home/node/.n8n
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - secure_internal_network
 
 volumes:
-  n8n_data:
-    name: n8n_data
+  postgres_data:
+    name: postgres_data
 
 networks:
   secure_internal_network:
     driver: bridge
-    internal: true # This prevents containers from accessing the public internet.
+    internal: true
