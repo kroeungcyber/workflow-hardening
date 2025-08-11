@@ -127,6 +127,25 @@ For a more user-friendly experience, you can use Tailscale's MagicDNS feature. T
 2.  Find your server's machine name in the "Machines" tab of the admin console.
 3.  You can now access n8n at `http://<machine-name>:5678`.
 
+### Using a Custom Private Domain with Split DNS (Advanced)
+
+If you want to use your own private domain (e.g., `n8n.internal`) for n8n, accessible only to Tailscale-connected devices, you can set up Split DNS with a private DNS server:
+
+1. **Set up a DNS server in your Tailscale network**  
+   - Use Pi-hole, dnsmasq, or Unbound on any device (VPS, Raspberry Pi, etc.) that is always online and connected to Tailscale.
+   - Add a DNS record mapping your custom domain (e.g., `n8n.internal`) to your VPS’s Tailscale IP (e.g., `100.x.y.z`).
+
+2. **Configure Tailscale DNS (Split DNS)**
+   - In the Tailscale admin console, go to Settings > DNS.
+   - Add your DNS server’s Tailscale IP as a nameserver.
+   - Set the search domain to your chosen private domain (e.g., `internal`).
+   - This tells Tailscale clients to use your DNS server for `*.internal` lookups.
+
+3. **Access n8n using your custom domain**
+   - On any Tailscale-connected device, you can now access n8n at `http://n8n.internal:5678/`.
+
+This approach gives you a memorable, private domain for your service, with all DNS resolution and traffic restricted to your Tailscale network. For more details, see the Tailscale documentation on [Split DNS](https://tailscale.com/kb/1054/dns/).
+
 ## Managing the n8n Service
 
 -   **To stop the service:**
